@@ -63,7 +63,6 @@ for m, ax in tqdm(zip(metals, axs.flatten())):
     pred = target_scaler.inverse_transform(prediction)
     original = target_scaler.inverse_transform(Y_test_scaled)
     plot_results(combined.index[(n_past+train_split):], m, ax, original, pred)
-    grid_model.save(f'lstm_model_{m}.h5')
     print(f"Metal {m} -> RMSE: {np.sqrt(np.sum((pred-original)**2))}")
 fig.suptitle("LSTM predictions")
 
@@ -74,5 +73,5 @@ labels=['Real Stock Price', 'Predicted Stock Price']
 fig.legend(handles, labels, loc='upper right', ncol=4)
 
 fig.tight_layout()
-plt.savefig("lstm_rez2.png")
+plt.savefig("pred/lstm_rez2.png")
 plt.show()

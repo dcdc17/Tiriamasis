@@ -90,5 +90,5 @@ handle2, = ax.plot([], [], color='green', linestyle='--', label='Forecasted pric
 handles = [handle1, handle2]
 labels = ['True data', 'Forecasted price (VARMA)', 'Forecasted price (VARMAX)']
 plt.tight_layout()
-plt.savefig('varma_varmax.png')
+plt.savefig('pred/varma_varmax.png')
 plt.show()

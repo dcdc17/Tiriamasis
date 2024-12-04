@@ -116,5 +116,5 @@ fig.legend(handles, labels, loc='upper right', ncol=4)
 
 # Adjust layout and save figure
 fig.tight_layout()  # Adjust layout to avoid overlap with suptitle
-plt.savefig("garch_forecast.png")
+plt.savefig("pred/garch_forecast.png")
 plt.show()
