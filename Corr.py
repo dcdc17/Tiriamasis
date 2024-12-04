@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from statsmodels.tsa.stattools import ccf
@@ -13,15 +14,17 @@ df_metals = df_all[metals]
 
 # CORR -----------------------------------
 cor_matrix = df_all.corr(method='pearson')
+mask = np.triu(np.ones_like(cor_matrix, dtype=bool))
 plt.figure(figsize=(10, 8))
-sns.heatmap(cor_matrix, annot=True, cmap='coolwarm', fmt=".2f")
+sns.heatmap(cor_matrix, annot=True, cmap='coolwarm', fmt=".2f", mask=mask, cbar_kws={"shrink": 0.8})
 plt.title("Pearson correlation Heatmap")
 plt.savefig(os.path.join("corr", "pearson_correlation.png"))
 plt.show()
 
 scor_matrix = df_all.corr(method='spearman')
+mask = np.triu(np.ones_like(scor_matrix, dtype=bool))
 plt.figure(figsize=(10, 8))
-sns.heatmap(scor_matrix, annot=True, cmap='coolwarm', fmt=".2f")
+sns.heatmap(scor_matrix, annot=True, cmap='coolwarm', fmt=".2f", mask=mask, cbar_kws={"shrink": 0.8})
 plt.title("Spearman correlation Heatmap")
 plt.savefig(os.path.join("corr", "spearman_correlation.png"))
 plt.show()

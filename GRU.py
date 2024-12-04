@@ -36,7 +36,7 @@ def forecast_future(model, recent_data, n_future, scaler, target_scaler):
         predictions.append(pred.flatten()[0])
         # Update input_seq by appending the prediction and removing the oldest data
         next_input = np.zeros_like(input_seq[-1])
-        next_input[:-1] = input_seq[-1][1:]  # Shift data
+        next_input[:-1] = input_seq[-1][:-1]  # Shift data
         next_input[-1] = pred  # Add the new prediction
         input_seq = np.vstack([input_seq[1:], next_input])
     return predictions
@@ -81,9 +81,6 @@ for m, ax in tqdm(zip(metals, axs.flatten())):
     grid_model.save(f'gru_model_{m}.h5')
     print(f"Metal {m} -> RMSE: {np.sqrt(np.sum((pred-original)**2))}")
 
-    recent_data = combined.iloc[-n_past:].values
-    future_preds = forecast_future(grid_model, recent_data, future, scaler, target_scaler)
-    ax.plot(pd.date_range(combined.index[-1], periods=future+1)[1:], future_preds, color='green')
 
 
 fig.suptitle("GRU predictions")
