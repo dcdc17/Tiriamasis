@@ -81,8 +81,6 @@ for m, ax in tqdm(zip(metals, axs.flatten())):
     grid_model.save(f'gru_model_{m}.h5')
     print(f"Metal {m} -> RMSE: {np.sqrt(np.sum((pred-original)**2))}")
 
-
-
 fig.suptitle("GRU predictions")
 
 handle1, = ax.plot([], [], color='red', label='Real Stock Price')  # Empty plot for legend

@@ -96,6 +96,7 @@ for m in metals:
 threshold = 0.8
 graph = nx.Graph()
 c = cor_matrix
+fig = plt.figure(figsize=(8, 8))
 for i in c.columns:
     for j in c.columns:
         if i != j and abs(c[i][j]) > threshold:
@@ -108,6 +109,7 @@ plt.show()
 threshold = 0.8
 graph = nx.Graph()
 c = scor_matrix
+fig = plt.figure(figsize=(8, 8))
 for i in c.columns:
     for j in c.columns:
         if i != j and abs(c[i][j]) > threshold:
