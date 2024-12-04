@@ -5,10 +5,14 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from statsmodels.tsa.stattools import ccf
 import networkx as nx
+from sklearn.preprocessing import MinMaxScaler
 from constants import tickers, metals
 
 
-df_all = pd.read_csv('all.csv', index_col=0)
+df = pd.read_csv('all.csv', index_col=0)
+scaler = MinMaxScaler(feature_range=(1, 2))
+df_all = pd.DataFrame(scaler.fit_transform(df), columns=df.columns, index=df.index)
+df_all = df_all.iloc[::-1]
 df_stocks = df_all[tickers]
 df_metals = df_all[metals]
 
@@ -32,7 +36,7 @@ plt.show()
 # Cross-correlation ------------
 for m in metals:
     i = 0
-    fig = plt.figure(figsize=(8, 8))
+    fig = plt.figure(figsize=(8, 14))
     gs = fig.add_gridspec(nrows=len(tickers) + 1, hspace=0)
     ax = gs.subplots(sharex=True, sharey=True)
     combined_data = []
@@ -40,9 +44,11 @@ for m in metals:
         cross_corr = ccf(df_all[t], df_all[m])
         combined_data.append(cross_corr)
         ax[i].plot(cross_corr)
+        ax[i].axhline(y=0, color='black', linestyle='--', alpha=0.5)
         ax[i].text(1.02, 0.5, t,
                    transform=ax[i].transAxes, rotation='horizontal', va='center', ha='left')
         ax[i].set_ylabel('CCF')
+        ax[i].grid()
         i += 1
     for cross_corr in combined_data:
         ax[-1].plot(cross_corr)
@@ -50,6 +56,8 @@ for m in metals:
                 transform=ax[i].transAxes, rotation='horizontal', va='center', ha='left')
     ax[-1].set_ylabel('CCF')
     ax[-1].set_xlabel('Lag')
+    ax[-1].axhline(y=0, color='black', linestyle='--', alpha=0.5)
+    ax[-1].grid()
     fig.suptitle(f"Cross correlations for {m}")
     fig.subplots_adjust(right=0.8)
     fig.savefig(os.path.join("corr", f"cross_correlations_{m}.png"))
@@ -66,9 +74,11 @@ for m in metals:
         rolling_corr = df_all[t].rolling(window_size).corr(df_all[m])
         combined_data.append(rolling_corr)
         ax[i].plot(rolling_corr)
+        ax[i].axhline(y=0, color='black', linestyle='--', alpha=0.5)
         ax[i].text(1.02, 0.5, t,
                    transform=ax[i].transAxes, rotation='horizontal', va='center', ha='left')
         ax[i].set_ylabel('RCF')
+        ax[i].grid()
         i += 1
     for cross_corr in combined_data:
         ax[-1].plot(cross_corr)
@@ -76,6 +86,8 @@ for m in metals:
                 transform=ax[i].transAxes, rotation='horizontal', va='center', ha='left')
     ax[-1].set_ylabel('CCF')
     ax[-1].set_xlabel('Date')
+    ax[-1].axhline(y=0, color='black', linestyle='--', alpha=0.5)
+    ax[-1].grid()
     fig.suptitle(f"Rolling correlations for {m}")
     fig.subplots_adjust(right=0.8)
     fig.savefig(os.path.join("corr", f"roll_correlations_{m}.png"))
