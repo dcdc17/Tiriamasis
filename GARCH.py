@@ -6,7 +6,7 @@ from sklearn.preprocessing import MinMaxScaler
 from tqdm import tqdm
 from arch import arch_model
 import matplotlib.dates as mdates
-from constants import tickers, metals
+from constants import tickers, metals, metal_pairs
 ts_order = {'^GSPC': (2, 1, 2),
             '^DJI': (3, 1, 3),
             '^IXIC': (2, 1, 2),

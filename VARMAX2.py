@@ -1,10 +1,9 @@
 import pandas as pd
 from tqdm import tqdm
-from statsmodels.tsa.api import VAR
 from matplotlib import pyplot as plt
 import matplotlib.dates as mdates
 from statsmodels.tsa.statespace.varmax import VARMAX
-from constants import tickers, metals, ts_order
+from constants import tickers, metals, ts_order, metal_pairs
 import pickle
 
 # Load your dataset
@@ -16,10 +15,10 @@ metal_market_cols = metals
 # VAR Model - Loop over each metal market
 for metal_market in tqdm(metal_market_cols):
     # Prepare the data for the current metal market
-    metal_market_data = df[indexes_cols + [f'{metal_market}']]
+    metal_market_data = df[metal_pairs[metal_market] + [metal_market]]
 
     # Fit the VAR model
-    model = VAR(metal_market_data)
+    model = VARMAX(metal_market_data, order=(1, 2))
     results = model.fit(maxlags=15, ic='aic')  # You can tune the lags parameter
 
     # Print the summary of VAR results
@@ -32,8 +31,8 @@ for metal_market in tqdm(metal_market_cols):
     # print(forecast)
 
     # VARMAX Model - Using indexes as exogenous variables
-    exog = metal_market_data[[i for i in indexes_cols if i != '^GSPC']]  # Exogenous variables (indexes)
-    endog = metal_market_data[[f'{metal_market}', '^GSPC']]  # Endogenous variable (metal market)
+    exog = metal_market_data[[i for i in indexes_cols if i not in metal_pairs[metal_market]]]  # Exogenous variables (indexes)
+    endog = metal_market_data[[metal_market]+metal_pairs[metal_market]]  # Endogenous variable (metal market)
 
     # Fit the VARMAX model
     varmax_model = VARMAX(endog, exog=exog, order=(ts_order[metal_market][0] if ts_order[metal_market][0] > 0 else 1,

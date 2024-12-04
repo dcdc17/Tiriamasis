@@ -6,7 +6,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM
 from tensorflow.keras.layers import Dense, Dropout
 from sklearn.preprocessing import MinMaxScaler
-from constants import tickers, metals
+from constants import tickers, metals, metal_pairs
 from random import seed
 import warnings
 warnings.filterwarnings('ignore')
@@ -38,7 +38,7 @@ fig, axs = plt.subplots(3,2, figsize=(18, 10))
 train_split=round(len(df)*0.80)
 n_past=30
 for m, ax in tqdm(zip(metals, axs.flatten())):
-    combined = df_stocks
+    combined = df_stocks[metal_pairs[m]]
     combined[m] = df_metals[m]
     X, Y = createXY(combined, n_past)
     X_train, X_test = X[:train_split, :, :], X[train_split:, :, :]
@@ -51,13 +51,14 @@ for m, ax in tqdm(zip(metals, axs.flatten())):
     Y_test_scaled = target_scaler.transform(Y_test.reshape(-1, 1))
 
     grid_model = Sequential()
-    grid_model.add(LSTM(100, return_sequences=True, input_shape=(n_past, len(combined.columns))))
+    grid_model.add(LSTM(150, return_sequences=True, input_shape=(n_past, len(combined.columns))))
+    grid_model.add(LSTM(200, return_sequences=True))
     grid_model.add(LSTM(100))
     grid_model.add(Dropout(0.1))
     grid_model.add(Dense(1))
     grid_model.compile(loss='mse', optimizer='adam')
 
-    grid_model.fit(X_train_scaled, Y_train_scaled, epochs=50, batch_size=4)
+    grid_model.fit(X_train_scaled, Y_train_scaled, epochs=50, batch_size=16)
     prediction = grid_model.predict(X_test_scaled)
     pred = target_scaler.inverse_transform(prediction)
     original = target_scaler.inverse_transform(Y_test_scaled)
