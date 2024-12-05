@@ -31,8 +31,8 @@ for metal_market in tqdm(metal_market_cols):
     # print(forecast)
 
     # VARMAX Model - Using indexes as exogenous variables
-    exog = metal_market_data[[i for i in indexes_cols if i not in metal_pairs[metal_market]]]  # Exogenous variables (indexes)
-    endog = metal_market_data[[metal_market]+metal_pairs[metal_market]]  # Endogenous variable (metal market)
+    exog = df[[i for i in indexes_cols if i not in metal_pairs[metal_market]]]  # Exogenous variables (indexes)
+    endog = metal_market_data  # Endogenous variable (metal market)
 
     # Fit the VARMAX model
     varmax_model = VARMAX(endog, exog=exog, order=(ts_order[metal_market][0] if ts_order[metal_market][0] > 0 else 1,
