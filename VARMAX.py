@@ -23,12 +23,8 @@ for metal_market in tqdm(metal_market_cols):
 
     # Print the summary of VAR results
     print(f"VAR Results for Metal Market {metal_market}")
-    # print(results.summary())
+    print(results.summary())
 
-    # Example forecasting for the next 10 steps
-    forecast = results.forecast(metal_market_data.values[-15:], steps=10)
-    print(f"Forecast for Metal Market {metal_market} (next 10 steps):")
-    # print(forecast)
 
     # VARMAX Model - Using indexes as exogenous variables
     exog = df[[i for i in indexes_cols if i not in metal_pairs[metal_market]]]  # Exogenous variables (indexes)
@@ -44,10 +40,6 @@ for metal_market in tqdm(metal_market_cols):
     print(f"VARMAX Results for Metal Market {metal_market}")
     print(varmax_results.summary())
 
-    # Example forecasting with exogenous variables for the next 10 steps
-    forecast_varmax = varmax_results.forecast(steps=10, exog=exog.tail(10))
-    print(f"VARMAX Forecast for Metal Market {metal_market} (next 10 steps):")
-    print(forecast_varmax)
     with open(f'var_{metal_market}.pkl', 'wb') as f:
         pickle.dump({'var': model, 'var_rez': results,
                      'varmax': varmax_model, 'varmax_results': varmax_results}, f)
@@ -65,7 +57,7 @@ for metal_market, ax in zip(metals, axs.flatten()):
     endog = metal_market_data[[f'{metal_market}', '^GSPC']]
 
     forecast_steps = 365
-    forecast_v = rez[metal_market]['var_rez'].forecast(y=metal_market_data, steps=forecast_steps)
+    forecast_v = rez[metal_market]['var_rez'].get_forecast(steps=forecast_steps)
     forecast = rez[metal_market]['varmax_results'].get_forecast(steps=forecast_steps, exog=exog[-forecast_steps:])
 
     # Get the predicted values
