@@ -1,10 +1,16 @@
+import os
+
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from matplotlib import pyplot as plt
 from constants import tickers,metals
 
-df = pd.read_csv('all.csv', index_col=0)
+BASE = 'all'
+os.makedirs(BASE, exist_ok=True)
+os.makedirs(os.path.join(BASE, 'AB'), exist_ok=True)
+
+df = pd.read_csv(f'{BASE}.csv', index_col=0)
 scaler = MinMaxScaler(feature_range=(1, 2))
 df_all = pd.DataFrame(scaler.fit_transform(df), columns=df.columns, index=df.index)
 df_all.index = pd.to_datetime(df_all.index)
@@ -15,25 +21,25 @@ df_metals = df_all[metals]
 # Function to calculate Alpha and Beta for a stock
 def calculate_alpha_beta(market, benchmark):
     x = benchmark.pct_change().dropna()
-    x=np.vstack([x,np.ones(len(x))]).T
+    x = np.vstack([x,np.ones(len(x))]).T
     y = market.pct_change().dropna()
     alpha, beta = np.linalg.lstsq(x,y, rcond=None)[0]
 
     # Grade for Alpha
     if alpha > 0.05:
-        alpha_grade = "Excellent"
+        alpha_grade = "Puiku"
     elif 0.01 <= alpha <= 0.05:
-        alpha_grade = "Good"
+        alpha_grade = "Gerai"
     else:
-        alpha_grade = "Below Average"
+        alpha_grade = "Žemiau vidurkio"
 
     # Grade for Beta
     if beta < 0.8:
-        beta_grade = "Low Risk (Defensive)"
+        beta_grade = "Maža rizika (gynybinė)"
     elif 0.8 <= beta <= 1.2:
-        beta_grade = "Moderate Risk"
+        beta_grade = "Vidutinė rizika"
     else:
-        beta_grade = "High Risk (Aggressive)"
+        beta_grade = "Didelė rizika (agresyvi)"
 
     return alpha, beta, alpha_grade, beta_grade
 
@@ -43,7 +49,7 @@ results = {m: {} for m in metals}
 for m in metals:
     for t in tickers:
         alpha, beta, alpha_grade, beta_grade = calculate_alpha_beta(df[m], df[t])
-        results[m][t]={
+        results[m][t] = {
             'Alpha': alpha,
             'Beta': beta,
             'Alpha Grade': alpha_grade,
@@ -52,8 +58,7 @@ for m in metals:
 
 
 # Loop through each metal to create line charts
-fig, axs = plt.subplots(2,2, figsize=(16,8))
-
+fig, axs = plt.subplots(3,2, figsize=(16,12))
 for ax, (metal, tickers_data) in zip(axs.flatten(), results.items()):
     tickers = list(tickers_data.keys())
     alphas = [tickers_data[t]['Alpha'] for t in tickers]
@@ -78,9 +83,9 @@ for ax, (metal, tickers_data) in zip(axs.flatten(), results.items()):
     ax.tick_params(axis='x', rotation=60)  # Rotate x-axis tick labels
 
 # Add a shared title for the entire figure
+plt.suptitle('Alpha ir Beta reikšmės kiekvienam metalo indeksui', fontsize=16)
 plt.tight_layout()
-plt.suptitle('Alpha and Beta per Ticker', fontsize=16)
-plt.savefig("alpha_beta_dual_axes.png")
+plt.savefig(os.path.join(BASE, 'AB', "alpha_beta_dual_axes.png"))
 plt.show()
 
 
@@ -100,4 +105,4 @@ grades_table = pd.DataFrame(table_data)
 
 # Display the table
 print(grades_table)
-#grades_table.to_excel("alpha_beta_grades.xlsx", index=False) -----> Already saved and formated
+grades_table.to_excel(os.path.join(BASE, 'AB', "alpha_beta_grades.xlsx"), index=False)
