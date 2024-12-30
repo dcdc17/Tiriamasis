@@ -1,3 +1,5 @@
 *.png
 *.h5
-corr/
+*.xlsx
+all/
+pradinis/
