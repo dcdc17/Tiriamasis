@@ -1,18 +1,18 @@
-import pandas as pd
 import os
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-from statsmodels.tsa.stattools import ccf
-import networkx as nx
-from sklearn.preprocessing import MinMaxScaler
-from constants import tickers, metals
 
-BASE = 'all'
+import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from sklearn.preprocessing import MinMaxScaler
+from statsmodels.tsa.stattools import ccf
+
+from constants import tickers, metals, BASE
+
 SCALE = True
 os.makedirs(BASE, exist_ok=True)
 os.makedirs(os.path.join(BASE, 'corr'), exist_ok=True)
-
 
 df = pd.read_csv(f'{BASE}.csv', index_col=0)
 if SCALE:
@@ -126,7 +126,3 @@ nx.draw(graph, with_labels=True, node_color="lightblue")
 plt.title("Network in regards of Spearman correlation")
 plt.savefig(os.path.join(BASE, "corr", "spearman_correlation_network.png"))
 plt.show()
-
-
-
-

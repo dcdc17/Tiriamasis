@@ -9,11 +9,10 @@ from arch import arch_model
 from statsmodels.graphics.tsaplots import plot_pacf
 from tqdm import tqdm
 
-from constants import tickers, metals
+from constants import tickers, metals, BASE
 
 warnings.simplefilter('ignore')
 
-BASE = 'all'
 os.makedirs(BASE, exist_ok=True)
 os.makedirs(os.path.join(BASE,'GARCH'), exist_ok=True)
 
