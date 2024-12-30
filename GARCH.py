@@ -89,7 +89,6 @@ def evaluate_model(data, ax, ax2, forecast_period=60):
     ax.set_ylabel('Grąža')
     ax.xaxis.set_major_locator(mdates.MonthLocator())
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
-    ax.tick_params(axis='y', labelcolor='blue')
 
     # PLOT 2: Forecasting future volatility
     future_dates = pd.date_range(data.index[-1], periods=forecast_period + 1, freq='D')[1:]
@@ -100,9 +99,8 @@ def evaluate_model(data, ax, ax2, forecast_period=60):
              label='Prognozuojamos grąžos')
     ax2.set_xlabel('Data')
     ax2.set_ylabel('Grąža')
-    ax2.xaxis.set_major_locator(mdates.YearLocator())
-    ax2.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
-    ax2.tick_params(axis='y', labelcolor='blue')
+    ax2.xaxis.set_major_locator(mdates.MonthLocator())
+    ax2.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
     ax2.set_title(data.name)
     ax2.set_xlim(pd.Timestamp("2024"), future_dates[-1])
 
