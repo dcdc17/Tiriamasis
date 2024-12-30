@@ -8,10 +8,18 @@ import networkx as nx
 from sklearn.preprocessing import MinMaxScaler
 from constants import tickers, metals
 
+BASE = 'all'
+SCALE = True
+os.makedirs(BASE, exist_ok=True)
+os.makedirs(os.path.join(BASE, 'corr'), exist_ok=True)
 
-df = pd.read_csv('all.csv', index_col=0)
-scaler = MinMaxScaler(feature_range=(1, 2))
-df_all = pd.DataFrame(scaler.fit_transform(df), columns=df.columns, index=df.index)
+
+df = pd.read_csv(f'{BASE}.csv', index_col=0)
+if SCALE:
+    scaler = MinMaxScaler(feature_range=(1, 2))
+    df_all = pd.DataFrame(scaler.fit_transform(df), columns=df.columns, index=df.index)
+else:
+    df_all = df
 df_all = df_all.iloc[::-1]
 df_stocks = df_all[tickers]
 df_metals = df_all[metals]
@@ -22,7 +30,7 @@ mask = np.triu(np.ones_like(cor_matrix, dtype=bool))
 plt.figure(figsize=(10, 8))
 sns.heatmap(cor_matrix, annot=True, cmap='coolwarm', fmt=".2f", mask=mask, cbar_kws={"shrink": 0.8})
 plt.title("Pearson correlation Heatmap")
-plt.savefig(os.path.join("corr", "pearson_correlation.png"))
+plt.savefig(os.path.join(BASE, "corr", "pearson_correlation.png"))
 plt.show()
 
 scor_matrix = df_all.corr(method='spearman')
@@ -30,7 +38,7 @@ mask = np.triu(np.ones_like(scor_matrix, dtype=bool))
 plt.figure(figsize=(10, 8))
 sns.heatmap(scor_matrix, annot=True, cmap='coolwarm', fmt=".2f", mask=mask, cbar_kws={"shrink": 0.8})
 plt.title("Spearman correlation Heatmap")
-plt.savefig(os.path.join("corr", "spearman_correlation.png"))
+plt.savefig(os.path.join(BASE, "corr", "spearman_correlation.png"))
 plt.show()
 
 # Cross-correlation ------------
@@ -60,7 +68,7 @@ for m in metals:
     ax[-1].grid()
     fig.suptitle(f"Cross correlations for {m}")
     fig.subplots_adjust(right=0.8)
-    fig.savefig(os.path.join("corr", f"cross_correlations_{m}.png"))
+    fig.savefig(os.path.join(BASE, "corr", f"cross_correlations_{m}.png"))
 
 # Rolling corr ------------------------
 window_size = 30  # Rolling window size
@@ -90,7 +98,7 @@ for m in metals:
     ax[-1].grid()
     fig.suptitle(f"Rolling correlations for {m}")
     fig.subplots_adjust(right=0.8)
-    fig.savefig(os.path.join("corr", f"roll_correlations_{m}.png"))
+    fig.savefig(os.path.join(BASE, "corr", f"roll_correlations_{m}.png"))
 
 # Network --------
 threshold = 0.8
@@ -103,7 +111,7 @@ for i in c.columns:
             graph.add_edge(i, j, weight=c[i][j])
 nx.draw(graph, with_labels=True, node_color="lightblue")
 plt.title("Network in regards of Pearson correlation")
-plt.savefig(os.path.join("corr", "pearson_correlation_network.png"))
+plt.savefig(os.path.join(BASE, "corr", "pearson_correlation_network.png"))
 plt.show()
 
 threshold = 0.8
@@ -116,7 +124,7 @@ for i in c.columns:
             graph.add_edge(i, j, weight=c[i][j])
 nx.draw(graph, with_labels=True, node_color="lightblue")
 plt.title("Network in regards of Spearman correlation")
-plt.savefig(os.path.join("corr", "spearman_correlation_network.png"))
+plt.savefig(os.path.join(BASE, "corr", "spearman_correlation_network.png"))
 plt.show()
 
 
