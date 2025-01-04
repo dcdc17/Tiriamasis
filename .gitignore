@@ -1,5 +1,6 @@
 *.png
 *.h5
 *.xlsx
+*.xml
 all/
 pradinis/
