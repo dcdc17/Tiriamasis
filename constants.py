@@ -4,6 +4,12 @@ tickers = ["^GSPC", "^DJI", "^IXIC", "^FTSE", "^GDAXI", "^FCHI", "^N100", "EURUS
            "EURRUB=X"]
 metals = ["GC=F", "SI=F", "PL=F", "PA=F", "HG=F", "ALI=F"]
 
+start_date = "2019-10-01"
+end_date = "2025-01-01"
+analysis_end_date = "2024-10-01"
+war_date = "2022-02-22"
+
+
 metal_pairs = {"GC=F": ["EURRUB=X", "^HSI", "^DXS"],
                "SI=F": ["^IXIC", "GD=F", "^GSPC", "EURRUB=X"],
                "PL=F": ["EURUSD=X", "GD=F"],
@@ -11,7 +17,7 @@ metal_pairs = {"GC=F": ["EURRUB=X", "^HSI", "^DXS"],
                "HG=F": ["^IXIC", "GD=F", "^GSPC", "^DJI"],
                "ALI=F": ["EURRUB=X", "GD=F", "^GDAXI", "^DJI", "^GSPC"]}
 
-BASE = 'all'
+BASE = 'all' #bi_daily, weekly, bi_weekly
 
 # index: (p, d, q)
 ts_order = {'^GSPC': (2, 1, 2),

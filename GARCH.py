@@ -16,7 +16,7 @@ warnings.simplefilter('ignore')
 os.makedirs(BASE, exist_ok=True)
 os.makedirs(os.path.join(BASE,'GARCH'), exist_ok=True)
 
-GARCH_PARAMS = {"p":1, "q":1, "mean":'constant', "vol":'GARCH', "dist":'normal'}
+GARCH_PARAMS = {"p":1, "q":1, "mean":'zero', "vol":'GARCH', "dist":'normal'}
 
 # Load and scale data
 df = pd.read_csv(f'{BASE}.csv', index_col=0)
