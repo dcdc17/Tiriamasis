@@ -55,6 +55,7 @@ def plot_all_on_one_plot(directory, title):
 
     # Show the plot
     plt.tight_layout()
+    plt.savefig(f"{directory}.png")
     plt.show()
 
 
@@ -109,7 +110,7 @@ df_weekly_combined = pd.concat([df_weekly, df_all_future]).sort_index()
 df_bi_weekly_combined = pd.concat([df_bi_weekly, df_all_future]).sort_index()
 
 # Save the combined datasets
-df_weekly_combined.to_csv('weeklyd.csv')
+df_weekly_combined.to_csv('weekly.csv')
 df_bi_weekly_combined.to_csv('bi_weekly.csv')
 
 print("Aggregations saved:")
