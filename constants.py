@@ -18,6 +18,7 @@ metal_pairs = {"GC=F": ["EURRUB=X", "^HSI", "^DXS"],
                "ALI=F": ["EURRUB=X", "GD=F", "^GDAXI", "^DJI", "^GSPC"]}
 
 BASE = 'all' #bi_daily, weekly, bi_weekly
+WAR = False
 
 # index: (p, d, q)
 ts_order = {'^GSPC': (2, 1, 2),
