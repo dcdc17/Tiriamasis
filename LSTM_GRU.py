@@ -122,12 +122,12 @@ def run(sel: str, model: str, test_opt: str):
             prediction = grid_model.predict(X_test_scaled, verbose=0)
             pred = target_scaler.inverse_transform(prediction)[:, -1]
             original = target_scaler.inverse_transform(Y_test_scaled)[:, -1]
-            rmse = np.sqrt(np.sum((pred - original) ** 2))
+            rmse = np.sqrt(np.mean((pred - original) ** 2))
             plot_results(combined.index[(n_past + train_split):], m, ax, original, pred, rmse)
         else:
             pred = forecast_future(grid_model, X_train_scaled, future, target_scaler)
             original = df_future[m].values
-            rmse = np.sqrt(np.sum((pred - original) ** 2))
+            rmse = np.sqrt(np.mean((pred - original) ** 2))
             plot_results(df_future.index, m, ax, original, pred, rmse, future=True)
         print(f"Metalas {m} -> RMSE: {rmse}")
 
