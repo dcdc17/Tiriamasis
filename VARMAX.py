@@ -69,6 +69,7 @@ def fit_var_models(metal_market, df_all, metal_pairs, tickers, ts_order, BASE):
         pickle.dump({'var': model, 'var_rez': results,
                      'var_part': model_part, 'var_rez_part': results_part,
                      'varmax': varmax_model, 'varmax_results': varmax_results}, f)
+        print(f"Successfully saved results to {os.path.join(BASE, 'varmax', f'var_{metal_market}.pkl')}")
 
 
 def parallelize_varmax(df_all, metal_pairs, tickers, ts_order, BASE, metals):
