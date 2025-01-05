@@ -1,4 +1,5 @@
 import os
+import warnings
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
@@ -7,6 +8,7 @@ import pandas as pd
 from statsmodels.tsa.regime_switching.markov_regression import MarkovRegression
 
 from constants import tickers, metals, BASE, war_date
+warnings.filterwarnings('ignore')
 
 os.makedirs(BASE, exist_ok=True)
 os.makedirs(os.path.join(BASE, 'regime'), exist_ok=True)
@@ -17,12 +19,10 @@ WAR = [None, True, False]
 for war in WAR:
     print(f"Analyzing WAR = {war}")
     KARAS = 'full'
-    df_all = df
+    df_all = df.copy()
     if war is not None:
         df_all = df_all[df_all.index >= pd.to_datetime(war_date) if war else df_all.index < pd.to_datetime(war_date)]
         KARAS = 'po' if war else 'pries'
-    df_stocks = df_all[tickers]
-    df_metals = df_all[metals]
 
     for col in df_all.columns:
         df_all[f'{col}_returns'] = np.log(df_all[col] / df_all[col].shift(1))  # Lognormuotos grąžos
@@ -57,7 +57,7 @@ for war in WAR:
         ax.xaxis.set_major_locator(mdates.YearLocator())
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
         ax.set_title(f"{col.split('_')[0]}")
-        ax.set_xlabel('Date')
+        ax.set_xlabel('Data')
         ax.set_ylabel('Lognormuotos grąžos')
         ax.legend()
     plt.suptitle("Grąžos su režimų tikimybėmis")
@@ -80,13 +80,13 @@ for war in WAR:
         ax.xaxis.set_major_locator(mdates.YearLocator())
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
         ax.set_title(f"{col.split('_')[0]}")
-        ax.set_xlabel('Date')
+        ax.set_xlabel('Data')
         ax.set_ylabel('Lognormuotos grąžos')
 
     fig.legend(
         handles=[low_volatility_line, high_volatility_line],
         loc='upper right',
-        bbox_to_anchor=(0.9, 0.95),  # Adjust as needed
+        bbox_to_anchor=(1, 1),  # Adjust as needed
         fontsize='medium'
     )
     plt.suptitle("Grąžos su pažymėtais režimais")

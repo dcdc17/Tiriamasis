@@ -23,8 +23,8 @@ df = df.iloc[::-1]
 df_all = df[df.index < pd.to_datetime(analysis_end_date)]
 df_future = df[df.index >= pd.to_datetime(analysis_end_date)]
 os.makedirs(os.path.join(BASE, "pred"), exist_ok=True)
-BATCH_SIZE = 128
-EPOCHS = 2
+BATCH_SIZE = 16
+EPOCHS = 50
 
 
 def rmse_metric(y_true, y_pred):

@@ -9,22 +9,19 @@ from arch import arch_model
 from statsmodels.graphics.tsaplots import plot_pacf
 from tqdm import tqdm
 
-from constants import tickers, metals, BASE
+from constants import metals, BASE
 
 warnings.simplefilter('ignore')
 
 os.makedirs(BASE, exist_ok=True)
-os.makedirs(os.path.join(BASE,'GARCH'), exist_ok=True)
+os.makedirs(os.path.join(BASE, 'GARCH'), exist_ok=True)
 
-GARCH_PARAMS = {"p":1, "q":1, "mean":'zero', "vol":'GARCH', "dist":'normal'}
+GARCH_PARAMS = {"p": 1, "q": 1, "mean": 'zero', "vol": 'GARCH', "dist": 'normal'}
 
 # Load and scale data
 df = pd.read_csv(f'{BASE}.csv', index_col=0)
 df_all = df
 df_all.index = pd.to_datetime(df_all.index)
-df_all = df.iloc[::-1]
-df_stocks = df_all[tickers]
-df_metals = df_all[metals]
 
 
 def analyze_pacf():
@@ -113,11 +110,15 @@ rez = {}
 fig, axs = plt.subplots(3, 2, figsize=(16, 9))
 fig2, axs2 = plt.subplots(3, 2, figsize=(16, 9))
 
+with open(os.path.join(BASE,'GARCH',"rez.txt"), "w") as file:
+    file.truncate(0)
 # Loop over metals to generate subplots
 for m, ax, ax2 in tqdm(zip(metals, axs.flatten(), axs2.flatten())):
     aic, bic, backtest, forecast_error = evaluate_model(df_all[m], ax, ax2)
     rez[m] = [aic, bic, backtest, forecast_error]
-    print(f'Metalas: {m}\tAIC: {aic}\tBIC: {bic}\tAtgalinio testavimo rezultatas: {backtest}')
+    result_txt=f'Metalas: {m}\tAIC: {aic}\tBIC: {bic}\tAtgalinio testavimo rezultatas: {backtest}'
+    with open(os.path.join(BASE,'GARCH',"rez.txt"), "a") as file:
+        file.write(result_txt + "\n")
 
 handle0_1, = ax.plot([], [], color='blue', label='Testinės imties grąžos')  # Empty plot for legend
 handle0_2, = ax.plot([], [], color='orange', label='Grąžos ilgalaikė prognozė)')  # Empty plot for legend

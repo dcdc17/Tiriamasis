@@ -59,7 +59,7 @@ def fit_var_models(metal_market, df_all, metal_pairs, tickers, ts_order, BASE):
 
 
 def parallelize_varmax(df_all, metal_pairs, tickers, ts_order, BASE, metals):
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with concurrent.futures.ProcessPoolExecutor() as executor:
         futures = [executor.submit(fit_var_models, metal_market, df_all, metal_pairs, tickers, ts_order, BASE) for
                    metal_market in metals]
         # Wait for all futures to complete
