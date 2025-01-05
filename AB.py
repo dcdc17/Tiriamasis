@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from matplotlib import pyplot as plt
-from constants import tickers, metals, war_date, BASE
+from constants import tickers, metals, war_date, BASE, analysis_end_date
 
 os.makedirs(BASE, exist_ok=True)
 os.makedirs(os.path.join(BASE, 'AB'), exist_ok=True)
@@ -13,7 +13,7 @@ df = pd.read_csv(f'{BASE}.csv', index_col=0)
 scaler = MinMaxScaler(feature_range=(1, 2))
 df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns, index=df.index)
 df.index = pd.to_datetime(df.index)
-
+df = df[df.index < pd.to_datetime(analysis_end_date)]
 
 # Function to calculate Alpha and Beta for a stock
 def calculate_alpha_beta(market, benchmark):

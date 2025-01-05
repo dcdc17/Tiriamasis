@@ -1,7 +1,6 @@
 import os
 import warnings
 
-import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -9,7 +8,7 @@ from arch import arch_model
 from statsmodels.graphics.tsaplots import plot_pacf
 from tqdm import tqdm
 
-from constants import metals
+from constants import metals, analysis_end_date
 
 warnings.simplefilter('ignore')
 
@@ -21,8 +20,10 @@ GARCH_PARAMS = {"p": 1, "q": 1, "mean": 'zero', "vol": 'GARCH', "dist": 'normal'
 
 # Load and scale data
 df = pd.read_csv(f'{BASE}.csv', index_col=0)
-df_all = df
-df_all.index = pd.to_datetime(df_all.index)
+df.index = pd.to_datetime(df.index)
+df = df.iloc[::-1]
+df_all = df[df.index < pd.to_datetime(analysis_end_date)]
+df_future = df[df.index >= pd.to_datetime(analysis_end_date)]
 
 
 def analyze_pacf():
@@ -37,9 +38,11 @@ def analyze_pacf():
     plt.show()
 
 
-def evaluate_model(data, ax, ax2, forecast_period=60):
+def evaluate_model(data, future_data, ax, ax2, forecast_period=60):
     log_returns = 100 * data.pct_change()
     log_returns.dropna(inplace=True)
+    log_returns_future = 100 * future_data.pct_change()
+    log_returns_future.dropna(inplace=True)
 
     # Fit GARCH model
     am = arch_model(log_returns, **GARCH_PARAMS)
@@ -78,28 +81,25 @@ def evaluate_model(data, ax, ax2, forecast_period=60):
     rolling_predictions = pd.Series(rolling_predictions, index=data.index[-test_size:])
 
     ax.plot(test_data, color='blue', label='Testinės imties grąžos')
-    ax.plot(mdates.date2num(rolling_predictions.index.tolist()), np.sqrt(forecast.variance.values[-1, :]),
+    ax.plot(test_data.index, np.sqrt(forecast.variance.values[-1, :]),
             color='orange', label='Grąžos ilgalaikė prognozė')
-    ax.plot(mdates.date2num(rolling_predictions.index.tolist()), rolling_predictions, color='red',
+    ax.plot(test_data.index, rolling_predictions, color='red',
             label='Grąžų kasdienė prognozė')
     ax.set_xlabel('Data')
     ax.set_ylabel('Grąža')
-    ax.xaxis.set_major_locator(mdates.MonthLocator())
-    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+    ax.set_title(data.name)
+    ax.grid()
 
     # PLOT 2: Forecasting future volatility
-    future_dates = pd.date_range(data.index[-1], periods=forecast_period + 1, freq='D')[1:]
     # Plot actual log returns and forecasted data
-    ax2.plot(log_returns, color='blue', label='Tikrosios grąžos')
+    ax2.plot(log_returns_future, color='blue', label='Tikrosios grąžos')
     # Plot forecasted log returns
-    ax2.plot(mdates.date2num(future_dates.tolist()), future, color='green', linestyle=':',
+    ax2.plot(future_data.index, future, color='green', linestyle=':',
              label='Prognozuojamos grąžos')
     ax2.set_xlabel('Data')
     ax2.set_ylabel('Grąža')
-    ax2.xaxis.set_major_locator(mdates.MonthLocator())
-    ax2.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
     ax2.set_title(data.name)
-    ax2.set_xlim(pd.Timestamp("2024"), future_dates[-1])
+    ax2.grid()
 
     return aic, bic, backtest, error
 
@@ -108,14 +108,15 @@ analyze_pacf()
 
 # Evaluate the GARCH model using log returns data
 rez = {}
-fig, axs = plt.subplots(3, 2, figsize=(16, 9))
-fig2, axs2 = plt.subplots(3, 2, figsize=(16, 9))
+fig, axs = plt.subplots(3, 2, figsize=(24, 9))
+fig2, axs2 = plt.subplots(3, 2, figsize=(24, 9))
 
 with open(os.path.join(BASE, 'GARCH', "rez.txt"), "w") as file:
     file.truncate(0)
 # Loop over metals to generate subplots
 for m, ax, ax2 in tqdm(zip(metals, axs.flatten(), axs2.flatten())):
-    aic, bic, backtest, forecast_error = evaluate_model(df_all[m], ax, ax2)
+    aic, bic, backtest, forecast_error = evaluate_model(df_all[m], df_future[m], ax, ax2,
+                                                        forecast_period=len(df_future))
     rez[m] = [aic, bic, backtest, forecast_error]
     result_txt = f'Metalas: {m}\tAIC: {aic}\tBIC: {bic}\tAtgalinio testavimo rezultatas: {backtest}'
     with open(os.path.join(BASE, 'GARCH', "rez.txt"), "a") as file:
@@ -131,16 +132,16 @@ labels = ['Testinės imties grąžos', 'Grąžos ilgalaikė prognozė',
 fig.suptitle("GARCH prognozių tikrinimas")
 fig.legend(handles, labels, loc='upper right', ncol=4)
 fig.tight_layout()
-plt.savefig(os.path.join(BASE, 'GARCH', "garch_forecast.png"))
-plt.show()
+fig.savefig(os.path.join(BASE, 'GARCH', "garch_forecast.png"))
+fig.show()
 
 handle1, = ax2.plot([], [], color='blue', label='Tikrosios grąžos')  # Empty plot for legend
 handle2, = ax2.plot([], [], color='green', linestyle=':', label='Prognozuojamos grąžos')  # Empty plot for legend
 
 handles = [handle1, handle2]
 labels = ['Tikrosios grąžos', 'Prognozuojamos grąžos']
-fig.suptitle("GARCH prognozavimas")
-fig.legend(handles, labels, loc='upper right', ncol=4)
-fig.tight_layout()
-plt.savefig(os.path.join(BASE, 'GARCH', "garch_forecast.png"))
-plt.show()
+fig2.suptitle("GARCH prognozavimas")
+fig2.legend(handles, labels, loc='upper right', ncol=4)
+fig2.tight_layout()
+fig2.savefig(os.path.join(BASE, 'GARCH', "garch_forecast.png"))
+fig2.show()

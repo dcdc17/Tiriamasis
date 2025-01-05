@@ -8,7 +8,7 @@ import seaborn as sns
 from sklearn.preprocessing import MinMaxScaler
 from statsmodels.tsa.stattools import ccf
 
-from constants import tickers, metals, BASE, war_date
+from constants import tickers, metals, BASE, war_date, analysis_end_date
 
 SCALE = True
 os.makedirs(BASE, exist_ok=True)
@@ -21,6 +21,7 @@ if SCALE:
     df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns, index=df.index)
 else:
     df = df
+df = df[df.index < pd.to_datetime(analysis_end_date)]
 
 WAR = [None, True, False]
 for war in WAR:

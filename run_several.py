@@ -9,7 +9,8 @@ def execute_python_files(files):
 
     for file in files:
         # Execute the Python file
-        subprocess.run(['python3', file])
+        print(f"Executing {file}")
+        subprocess.run(['python', file])
 
 
 # List of .py files to execute
@@ -18,4 +19,4 @@ forecast_python_files = ['VARMAX.py', 'GARCH.py', 'LSTM_GRU.py']
 
 # Run the scripts
 execute_python_files(analysis_python_files)
-execute_python_files(forecast_python_files)
+#execute_python_files(forecast_python_files)
