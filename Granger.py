@@ -6,13 +6,15 @@ import pandas as pd
 import seaborn as sns
 from statsmodels.tsa.stattools import grangercausalitytests
 
-from constants import tickers, metals, BASE, war_date
+from constants import tickers, metals, BASE, war_date, analysis_end_date
 
 os.makedirs(BASE, exist_ok=True)
 os.makedirs(os.path.join(BASE, 'granger'), exist_ok=True)
 
 df = pd.read_csv(f'{BASE}.csv', index_col=0)
 df.index = pd.to_datetime(df.index)
+df = df[df.index < pd.to_datetime(analysis_end_date)]
+
 WAR = [None, True, False]
 for war in WAR:
     print(f"Analyzing WAR = {war}")

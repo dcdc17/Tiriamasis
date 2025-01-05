@@ -7,7 +7,8 @@ import numpy as np
 import pandas as pd
 from statsmodels.tsa.regime_switching.markov_regression import MarkovRegression
 
-from constants import tickers, metals, BASE, war_date
+from constants import tickers, metals, BASE, war_date, analysis_end_date
+
 warnings.filterwarnings('ignore')
 
 os.makedirs(BASE, exist_ok=True)
@@ -15,6 +16,8 @@ os.makedirs(os.path.join(BASE, 'regime'), exist_ok=True)
 
 df = pd.read_csv(f'{BASE}.csv', index_col=0)
 df.index = pd.to_datetime(df.index)
+df = df[df.index < pd.to_datetime(analysis_end_date)]
+
 WAR = [None, True, False]
 for war in WAR:
     print(f"Analyzing WAR = {war}")
