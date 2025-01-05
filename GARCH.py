@@ -1,5 +1,7 @@
 import os
+import sys
 import warnings
+from random import seed
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,9 +12,15 @@ from tqdm import tqdm
 
 from constants import metals, analysis_end_date
 
-warnings.simplefilter('ignore')
+warnings.filterwarnings('ignore')
+seed(42)
 
-BASE = 'all'
+if len(sys.argv) > 1:
+    BASE = sys.argv[1]
+    print(f"Received constant: {BASE}")
+else:
+    from constants import BASE
+
 os.makedirs(BASE, exist_ok=True)
 os.makedirs(os.path.join(BASE, 'GARCH'), exist_ok=True)
 
@@ -21,7 +29,6 @@ GARCH_PARAMS = {"p": 1, "q": 1, "mean": 'zero', "vol": 'GARCH', "dist": 'normal'
 # Load and scale data
 df = pd.read_csv(f'{BASE}.csv', index_col=0)
 df.index = pd.to_datetime(df.index)
-df = df.iloc[::-1]
 df_all = df[df.index < pd.to_datetime(analysis_end_date)]
 df_future = df[df.index >= pd.to_datetime(analysis_end_date)]
 

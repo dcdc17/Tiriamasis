@@ -1,6 +1,9 @@
 import concurrent.futures
 import os
+import sys
+import warnings
 import pickle
+from random import seed
 
 import matplotlib.dates as mdates
 import numpy as np
@@ -10,7 +13,15 @@ from statsmodels.tsa.statespace.varmax import VARMAX
 
 from constants import tickers, metals, ts_order, metal_pairs, analysis_end_date
 
-BASE = 'all'
+warnings.filterwarnings('ignore')
+seed(42)
+
+if len(sys.argv) > 1:
+    BASE = sys.argv[1]
+    print(f"Received constant: {BASE}")
+else:
+    from constants import BASE
+
 # Load your dataset
 df = pd.read_csv(f'{BASE}.csv', index_col=0)  # Replace with your actual file path
 df.index = pd.to_datetime(df.index)

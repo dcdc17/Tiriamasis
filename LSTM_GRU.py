@@ -1,4 +1,5 @@
 import os
+import sys
 import warnings
 from itertools import product
 from random import seed
@@ -16,10 +17,15 @@ from constants import tickers, metals, metal_pairs, analysis_end_date
 
 warnings.filterwarnings('ignore')
 seed(42)
-BASE = 'all'
+
+if len(sys.argv) > 1:
+    BASE = sys.argv[1]
+    print(f"Received constant: {BASE}")
+else:
+    from constants import BASE
+
 df = pd.read_csv(f'{BASE}.csv', index_col=0)
 df.index = pd.to_datetime(df.index)
-df = df.iloc[::-1]
 df_all = df[df.index < pd.to_datetime(analysis_end_date)]
 df_future = df[df.index >= pd.to_datetime(analysis_end_date)]
 os.makedirs(os.path.join(BASE, "pred"), exist_ok=True)
@@ -93,8 +99,8 @@ def run(sel: str, model: str, test_opt: str):
     global df_all, df_future
     print(f"Options:\n\tsel -> {sel}\tmodel -> {model}\ttest_opt -> {test_opt}")
     fig, axs = plt.subplots(3, 2, figsize=(18, 10))
-    train_split = round(len(df_all) * 0.80)
     n_past = 30
+    train_split = round((len(df_all)-n_past) * 0.80)
     future = len(df_future)
     for m, ax in tqdm(zip(metals, axs.flatten())):
         selected = tickers + [m] if sel == 'all' else metal_pairs[m] + [m] if sel == 'selected' else m

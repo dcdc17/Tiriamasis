@@ -1,4 +1,5 @@
 import subprocess
+from constants import BASE
 
 def execute_python_files(files):
     """
@@ -10,7 +11,7 @@ def execute_python_files(files):
     for file in files:
         # Execute the Python file
         print(f"Executing {file}")
-        subprocess.run(['python', file])
+        subprocess.run(['python', file, BASE])
 
 
 # List of .py files to execute
@@ -19,4 +20,5 @@ forecast_python_files = ['GARCH.py', 'LSTM_GRU.py', 'VARMAX.py']
 
 # Run the scripts
 # execute_python_files(analysis_python_files)
+print(f'Using data: \'{BASE}\'')
 execute_python_files(forecast_python_files)
