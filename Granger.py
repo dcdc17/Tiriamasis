@@ -1,4 +1,5 @@
 import os
+import warnings
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -8,6 +9,7 @@ from statsmodels.tsa.stattools import grangercausalitytests
 
 from constants import tickers, metals, BASE, war_date, analysis_end_date
 
+warnings.simplefilter('ignore')
 os.makedirs(BASE, exist_ok=True)
 os.makedirs(os.path.join(BASE, 'granger'), exist_ok=True)
 
