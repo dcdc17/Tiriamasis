@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
+from tensorflow.keras import backend as K
 from tensorflow.keras.layers import GRU, LSTM, Dense, Dropout
 from tensorflow.keras.models import Sequential
 from tqdm import tqdm
@@ -22,13 +23,20 @@ df = df.iloc[::-1]
 df_all = df[df.index < pd.to_datetime(analysis_end_date)]
 df_future = df[df.index >= pd.to_datetime(analysis_end_date)]
 os.makedirs(os.path.join(BASE, "pred"), exist_ok=True)
-BATCH_SIZE = 8
-EPOCHS = 50
+BATCH_SIZE = 128
+EPOCHS = 2
+
+
+def rmse_metric(y_true, y_pred):
+    return K.sqrt(K.mean(K.square(y_pred - y_true)))
+
 
 def createXY(dataset, n_past):
     dataX = []
     dataY = []
     data = dataset.values
+    if data.ndim == 1:
+        data = data.reshape(-1, 1)
     for i in range(len(data) - n_past):
         dataX.append(data[i:i + n_past, :])
         dataY.append(data[i + n_past, :])
@@ -50,10 +58,10 @@ def forecast_future(model, input_seq, n_future, target_scaler):
     return target_scaler.inverse_transform(p)[:, -1]
 
 
-def plot_results(time, m, ax, original, pred):
+def plot_results(time, m, ax, original, pred, rmse, future=False):
     ax.plot(time, original, color='red')
-    ax.plot(time, pred, color='blue')
-    ax.set_title(m)
+    ax.plot(time, pred, color='blue' if not future else 'green')
+    ax.set_title(f"{m}. RMSE = {rmse:.4f}")
     ax.set_xlabel('Data')
     ax.set_ylabel('Uždarymo kaina')
     ax.grid()
@@ -66,7 +74,7 @@ def prepare_gru(input_shape, output_features):
     grid_model.add(GRU(100))
     grid_model.add(Dropout(0.1))
     grid_model.add(Dense(output_features))
-    grid_model.compile(loss='mse', optimizer='adam')
+    grid_model.compile(loss='mse', optimizer='adam', metrics=[rmse_metric])
     return grid_model
 
 
@@ -77,20 +85,22 @@ def prepare_lstm(input_shape, output_features):
     grid_model.add(LSTM(100))
     grid_model.add(Dropout(0.1))
     grid_model.add(Dense(output_features))
-    grid_model.compile(loss='mse', optimizer='adam')
+    grid_model.compile(loss='mse', optimizer='adam', metrics=[rmse_metric])
     return grid_model
 
 
-def run(diff: bool, model: str, test_opt: bool):
+def run(sel: str, model: str, test_opt: str):
     global df_all, df_future
-    print(f"Options:\n\tdiff -> {diff}\tmodel -> {model}\ttest_opt -> {test_opt}")
+    print(f"Options:\n\tsel -> {sel}\tmodel -> {model}\ttest_opt -> {test_opt}")
     fig, axs = plt.subplots(3, 2, figsize=(18, 10))
     train_split = round(len(df_all) * 0.80)
     n_past = 30
     future = len(df_future)
     for m, ax in tqdm(zip(metals, axs.flatten())):
-        selected = metal_pairs[m] + [m] if diff else tickers + [m]
+        selected = tickers + [m] if sel == 'all' else metal_pairs[m] + [m] if sel == 'selected' else m
         combined = df_all[selected]
+        if isinstance(combined, pd.Series):
+            combined = combined.to_frame()
         X, Y = createXY(combined, n_past)
         if test_opt:
             X_train, X_test = (X[:train_split, :, :], X[train_split:, :, :])
@@ -106,20 +116,22 @@ def run(diff: bool, model: str, test_opt: bool):
         grid_model = prepare_lstm((n_past, len(combined.columns)), len(combined.columns)) \
             if model.lower() == 'lstm' else prepare_gru((n_past, len(combined.columns)), len(combined.columns))
         grid_model.fit(X_train_scaled, Y_train_scaled, epochs=EPOCHS, batch_size=BATCH_SIZE)
-        if test_opt:
+        if test_opt == 'test':
             X_test_scaled = scaler.transform(X_test.reshape(-1, X_test.shape[2])).reshape(X_test.shape)
             Y_test_scaled = target_scaler.transform(Y_test.reshape(-1, Y_test.shape[1]))
-            prediction = grid_model.predict(X_test_scaled)
+            prediction = grid_model.predict(X_test_scaled, verbose=0)
             pred = target_scaler.inverse_transform(prediction)[:, -1]
             original = target_scaler.inverse_transform(Y_test_scaled)[:, -1]
-            plot_results(combined.index[(n_past + train_split):], m, ax, original, pred)
+            rmse = np.sqrt(np.sum((pred - original) ** 2))
+            plot_results(combined.index[(n_past + train_split):], m, ax, original, pred, rmse)
         else:
             pred = forecast_future(grid_model, X_train_scaled, future, target_scaler)
             original = df_future[m].values
-            plot_results(df_future.index, m, ax, original, pred)
-        print(f"Metalas {m} -> RMSE: {np.sqrt(np.sum((pred - original) ** 2))}")
+            rmse = np.sqrt(np.sum((pred - original) ** 2))
+            plot_results(df_future.index, m, ax, original, pred, rmse, future=True)
+        print(f"Metalas {m} -> RMSE: {rmse}")
 
-    fig.suptitle(f"{model.upper()} prognozės testiniai imčiai" if test_opt else f"{model.upper()} ateities prognozės")
+    fig.suptitle(f"{model.upper()} prognozės testiniai imčiai" if test_opt == 'test' else f"{model.upper()} ateities prognozės")
 
     handle1, = ax.plot([], [], color='red', label='Tikra uždarymo kaina')  # Empty plot for legend
     handle2, = ax.plot([], [], color='blue' if test_opt else 'green',
@@ -129,15 +141,13 @@ def run(diff: bool, model: str, test_opt: bool):
     fig.legend(handles, labels, loc='upper right', ncol=4)
 
     fig.tight_layout()
-    save_path = os.path.join(BASE, "pred", f"{model.lower()}_test.png") if test_opt else os.path.join(BASE, "pred",
-                                                                                                      f"{model.lower()}_forecast.png")
-    plt.savefig(save_path)
+    plt.savefig(os.path.join(BASE, "pred", f"{model.lower()}_{sel}_{test_opt}.png"))
     plt.show()
 
 
-difs = [True, False]
+orgs = ['all', 'selected', 'solo']
 models = ['lstm', 'gru']
-test = [True, False]
+test = ['test', 'future']
 
-for opts in product(difs, models, test):
+for opts in product(orgs, models, test):
     run(*opts)
