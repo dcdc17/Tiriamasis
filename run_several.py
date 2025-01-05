@@ -15,8 +15,8 @@ def execute_python_files(files):
 
 # List of .py files to execute
 analysis_python_files = ['AB.py', 'Clustering.py', 'Corr.py', 'Granger.py', 'Regime.py']
-forecast_python_files = ['VARMAX.py', 'GARCH.py', 'LSTM_GRU.py']
+forecast_python_files = ['GARCH.py', 'LSTM_GRU.py', 'VARMAX.py']
 
 # Run the scripts
-execute_python_files(analysis_python_files)
-#execute_python_files(forecast_python_files)
+# execute_python_files(analysis_python_files)
+execute_python_files(forecast_python_files)
