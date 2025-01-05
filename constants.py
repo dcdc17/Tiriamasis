@@ -7,7 +7,7 @@ metals = ["GC=F", "SI=F", "PL=F", "PA=F", "HG=F", "ALI=F"]
 start_date = "2019-10-01"
 end_date = "2025-01-01"
 analysis_end_date = "2024-10-01"
-war_date = "2022-02-22"
+war_date = "2022-02-24"
 
 
 metal_pairs = {"GC=F": ["EURRUB=X", "^HSI", "^DXS"],

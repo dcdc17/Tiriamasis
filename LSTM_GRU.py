@@ -29,8 +29,8 @@ df.index = pd.to_datetime(df.index)
 df_all = df[df.index < pd.to_datetime(analysis_end_date)]
 df_future = df[df.index >= pd.to_datetime(analysis_end_date)]
 os.makedirs(os.path.join(BASE, "pred"), exist_ok=True)
-BATCH_SIZE = 16
-EPOCHS = 50
+BATCH_SIZE = 256
+EPOCHS = 1
 
 
 def rmse_metric(y_true, y_pred):
@@ -121,7 +121,7 @@ def run(sel: str, model: str, test_opt: str):
 
         grid_model = prepare_lstm((n_past, len(combined.columns)), len(combined.columns)) \
             if model.lower() == 'lstm' else prepare_gru((n_past, len(combined.columns)), len(combined.columns))
-        grid_model.fit(X_train_scaled, Y_train_scaled, epochs=EPOCHS, batch_size=BATCH_SIZE)
+        grid_model.fit(X_train_scaled, Y_train_scaled, epochs=EPOCHS, batch_size=BATCH_SIZE, verbose=0)
         if test_opt == 'test':
             X_test_scaled = scaler.transform(X_test.reshape(-1, X_test.shape[2])).reshape(X_test.shape)
             Y_test_scaled = target_scaler.transform(Y_test.reshape(-1, Y_test.shape[1]))
