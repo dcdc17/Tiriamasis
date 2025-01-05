@@ -12,11 +12,11 @@ from tensorflow.keras.layers import GRU, LSTM, Dense, Dropout
 from tensorflow.keras.models import Sequential
 from tqdm import tqdm
 
-from constants import tickers, metals, metal_pairs, BASE, analysis_end_date
+from constants import tickers, metals, metal_pairs, analysis_end_date
 
 warnings.filterwarnings('ignore')
 seed(42)
-
+BASE = 'all'
 df = pd.read_csv(f'{BASE}.csv', index_col=0)
 df.index = pd.to_datetime(df.index)
 df = df.iloc[::-1]
@@ -131,7 +131,8 @@ def run(sel: str, model: str, test_opt: str):
             plot_results(df_future.index, m, ax, original, pred, rmse, future=True)
         print(f"Metalas {m} -> RMSE: {rmse}")
 
-    fig.suptitle(f"{model.upper()} prognozės testiniai imčiai" if test_opt == 'test' else f"{model.upper()} ateities prognozės")
+    fig.suptitle(
+        f"{model.upper()} prognozės testiniai imčiai" if test_opt == 'test' else f"{model.upper()} ateities prognozės")
 
     handle1, = ax.plot([], [], color='red', label='Tikra uždarymo kaina')  # Empty plot for legend
     handle2, = ax.plot([], [], color='blue' if test_opt else 'green',

@@ -9,10 +9,11 @@ from arch import arch_model
 from statsmodels.graphics.tsaplots import plot_pacf
 from tqdm import tqdm
 
-from constants import metals, BASE
+from constants import metals
 
 warnings.simplefilter('ignore')
 
+BASE = 'all'
 os.makedirs(BASE, exist_ok=True)
 os.makedirs(os.path.join(BASE, 'GARCH'), exist_ok=True)
 
@@ -110,14 +111,14 @@ rez = {}
 fig, axs = plt.subplots(3, 2, figsize=(16, 9))
 fig2, axs2 = plt.subplots(3, 2, figsize=(16, 9))
 
-with open(os.path.join(BASE,'GARCH',"rez.txt"), "w") as file:
+with open(os.path.join(BASE, 'GARCH', "rez.txt"), "w") as file:
     file.truncate(0)
 # Loop over metals to generate subplots
 for m, ax, ax2 in tqdm(zip(metals, axs.flatten(), axs2.flatten())):
     aic, bic, backtest, forecast_error = evaluate_model(df_all[m], ax, ax2)
     rez[m] = [aic, bic, backtest, forecast_error]
-    result_txt=f'Metalas: {m}\tAIC: {aic}\tBIC: {bic}\tAtgalinio testavimo rezultatas: {backtest}'
-    with open(os.path.join(BASE,'GARCH',"rez.txt"), "a") as file:
+    result_txt = f'Metalas: {m}\tAIC: {aic}\tBIC: {bic}\tAtgalinio testavimo rezultatas: {backtest}'
+    with open(os.path.join(BASE, 'GARCH', "rez.txt"), "a") as file:
         file.write(result_txt + "\n")
 
 handle0_1, = ax.plot([], [], color='blue', label='Testinės imties grąžos')  # Empty plot for legend

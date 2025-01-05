@@ -1,14 +1,16 @@
+import concurrent.futures
 import os
 import pickle
-import concurrent.futures
+
 import matplotlib.dates as mdates
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from statsmodels.tsa.statespace.varmax import VARMAX
 
-from constants import tickers, metals, ts_order, metal_pairs, analysis_end_date, BASE
+from constants import tickers, metals, ts_order, metal_pairs, analysis_end_date
 
+BASE = 'all'
 # Load your dataset
 df = pd.read_csv(f'{BASE}.csv', index_col=0)  # Replace with your actual file path
 df.index = pd.to_datetime(df.index)
@@ -82,7 +84,8 @@ def run():
         forecast_steps = len(df_future)
         forecast_v = rez[metal_market]['var_rez'].get_forecast(steps=forecast_steps)
         forecast_v_part = rez[metal_market]['var_rez_part'].get_forecast(steps=forecast_steps)
-        forecast = rez[metal_market]['varmax_results'].get_forecast(steps=forecast_steps, exog=df_future.drop(columns=[metal_market]))
+        forecast = rez[metal_market]['varmax_results'].get_forecast(steps=forecast_steps,
+                                                                    exog=df_future.drop(columns=[metal_market]))
 
         # Get the predicted values
         predicted_values = forecast.predicted_mean[metal_market]
@@ -95,25 +98,29 @@ def run():
         xtime = mdates.date2num(df_future.index.tolist())
         predtime = mdates.date2num(
             pd.Index(
-                pd.date_range(df_future.index[-1], periods=forecast_steps + 1, freq='D')[1:].strftime('%Y-%m-%d')).tolist())
+                pd.date_range(df_future.index[-1], periods=forecast_steps + 1, freq='D')[1:].strftime(
+                    '%Y-%m-%d')).tolist())
         ax.plot(xtime, df_future[metal_market], color='blue')
         ax.plot(predtime, predicted_values, color='red', linestyle='--')
         ax.plot(predtime, predicted_values_v, color='green', linestyle='--')
         ax.plot(predtime, predicted_values_v_part, color='orange', linestyle='--')
         ax.xaxis.set_major_locator(mdates.MonthLocator())
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
-        ax.set_title(f"{metal_market}. RMSE:\n VARMA -> {rmses['varma']}\n VARMA su poromis -> {rmses['varma_part']}\n VARMAX -> {rmses['varmax']}")
+        ax.set_title(
+            f"{metal_market}. RMSE:\n VARMA -> {rmses['varma']}\n VARMA su poromis -> {rmses['varma_part']}\n VARMAX -> {rmses['varmax']}")
         ax.set_xlabel('Data')
         ax.set_ylabel('Uždarymo kaina')
         ax.grid(True)
 
     handle1, = ax.plot([], [], color='blue', label='Tikra kaina')  # Empty plot for legend
     handle2, = ax.plot([], [], color='red', linestyle='--', label='Prognozuota kaina\n(VARMA)')  # Empty plot for legend
-    handle3, = ax.plot([], [], color='orange', linestyle='--', label='Prognozuota kaina\n(VARMA su poromis)')  # Empty plot for legend
+    handle3, = ax.plot([], [], color='orange', linestyle='--',
+                       label='Prognozuota kaina\n(VARMA su poromis)')  # Empty plot for legend
     handle4, = ax.plot([], [], color='green', linestyle='--',
                        label='Prognozuota kaina\n(VARMAX)')  # Empty plot for legend
     handles = [handle1, handle2, handle3, handle4]
-    labels = ['Tikra kaina', 'Prognozuota kaina\n(VARMA)', 'Prognozuota kaina\n(VARMA su poromis)', 'Prognozuota kaina\n(VARMAX)']
+    labels = ['Tikra kaina', 'Prognozuota kaina\n(VARMA)', 'Prognozuota kaina\n(VARMA su poromis)',
+              'Prognozuota kaina\n(VARMAX)']
     fig.legend(handles, labels, loc='upper right', ncol=2)
     plt.tight_layout()
     plt.savefig(os.path.join(BASE, 'varmax', 'varma_varmax.png'))
