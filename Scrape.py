@@ -86,6 +86,7 @@ def one_df(indices_path, commodities_path, tickers, metals):
     df = df.set_index('Date')
     df = df.sort_index(ascending=False)
     df = df.interpolate(method='linear')
+    df = df.sort_index()
     df = df[df.index < pd.to_datetime(end_date)]
     return df
 
@@ -103,15 +104,12 @@ df_all_future = df_all[df_all.index >= pd.to_datetime(analysis_end_date)]
 
 
 # Aggregation
-df_weekly = df_all_analysis.resample('W').mean()      # Weekly average
-df_bi_weekly = df_all_analysis.resample('2W').mean()  # Bi-weekly average
-
-df_weekly_combined = pd.concat([df_weekly, df_all_future]).sort_index()
-df_bi_weekly_combined = pd.concat([df_bi_weekly, df_all_future]).sort_index()
+df_weekly = df_all.resample('W').mean().sort_index()      # Weekly average
+df_bi_weekly = df_all.resample('2W').mean().sort_index()  # Bi-weekly average
 
 # Save the combined datasets
-df_weekly_combined.to_csv('weekly.csv')
-df_bi_weekly_combined.to_csv('bi_weekly.csv')
+df_weekly.to_csv('weekly.csv')
+df_bi_weekly.to_csv('bi_weekly.csv')
 
 print("Aggregations saved:")
 print("- Weekly: weekly.csv")

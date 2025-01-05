@@ -1,4 +1,4 @@
-import concurrent.futures
+from joblib import Parallel, delayed
 import os
 import sys
 import warnings
@@ -17,7 +17,7 @@ warnings.filterwarnings('ignore')
 seed(42)
 
 if len(sys.argv) > 1:
-    BASE = sys.argv[1]
+    BASE = str(sys.argv[1])
     print(f"Received constant: {BASE}")
 else:
     from constants import BASE
@@ -30,54 +30,44 @@ df_future = df[df.index >= pd.to_datetime(analysis_end_date)]
 os.makedirs(os.path.join(BASE, "varmax"), exist_ok=True)
 
 
-def fit_var_models(metal_market, df_all, metal_pairs, tickers, ts_order, BASE):
+def fit_var_models_parallel(metal_market, df_all, metal_pairs, tickers, ts_order, BASE):
     selected = tickers + [metal_market]
     selected_pairs = metal_pairs[metal_market] + [metal_market]
-
-    # Prepare the data for the current metal market
     metal_market_data_whole = df_all[selected]
     metal_market_data_part = df_all[selected_pairs]
-
     p, s, q = ts_order[metal_market]
-
-    # Fit the VAR model for whole metal market
+    if p == 0:
+        print(f"Warning: p is zero for {metal_market}, setting to default 1")
+        p = 1
+    if q == 0:
+        print(f"Warning: q is zero for {metal_market}, setting to default 1")
+        q = 1
+    print(f"Fitting VAR for whole Metal Market {metal_market}")
     model = VARMAX(metal_market_data_whole, order=(p, q), enforce_stationarity=True)
     results = model.fit(disp=False)  # You can tune the lags parameter
-
     print(f"VAR Results for whole Metal Market {metal_market}")
-    print(results.summary())
-
-    # Fit the VAR model for part metal market
+    print(f"Fitting VAR for part Metal Market {metal_market}")
     model_part = VARMAX(metal_market_data_part, order=(p, q), enforce_stationarity=True)
     results_part = model_part.fit(disp=False)  # You can tune the lags parameter
-
     print(f"VAR Results for part Metal Market {metal_market}")
-    print(results_part.summary())
-
-    # Fit the VARMAX model using indexes as exogenous variables
-    exog = df_all[list(set(tickers) - set(selected))]  # Exogenous variables (indexes)
+    print(f"Fitting VARMAX for Metal Market {metal_market}")
+    exog = df_all[list(set(tickers) - set(selected_pairs))]  # Exogenous variables (indexes)
     endog = metal_market_data_part  # Endogenous variable (metal market)
-
     varmax_model = VARMAX(endog, exog=exog, order=(p, q), enforce_stationarity=True)  # You can tune the (p, q) order
     varmax_results = varmax_model.fit(disp=False)
-
     print(f"VARMAX Results for Metal Market {metal_market}")
-    print(varmax_results.summary())
-
-    # Save the results to a pickle file
-    with open(os.path.join(BASE, 'varmax', f'var_{metal_market}.pkl'), 'wb') as f:
-        pickle.dump({'var': model, 'var_rez': results,
-                     'var_part': model_part, 'var_rez_part': results_part,
-                     'varmax': varmax_model, 'varmax_results': varmax_results}, f)
+    try:
+        with open(os.path.join(BASE, 'varmax', f'var_{metal_market}.pkl'), 'wb') as f:
+            pickle.dump({'var': model, 'var_rez': results,
+                         'var_part': model_part, 'var_rez_part': results_part,
+                         'varmax': varmax_model, 'varmax_results': varmax_results}, f)
         print(f"Successfully saved results to {os.path.join(BASE, 'varmax', f'var_{metal_market}.pkl')}")
+    except Exception as e:
+        print(f"Error saving pickle: {e}")
 
 
 def parallelize_varmax(df_all, metal_pairs, tickers, ts_order, BASE, metals):
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        futures = [executor.submit(fit_var_models, metal_market, df_all, metal_pairs, tickers, ts_order, BASE) for
-                   metal_market in metals]
-        # Wait for all futures to complete
-        concurrent.futures.wait(futures)
+    Parallel(n_jobs=-1, verbose=10)(delayed(fit_var_models_parallel)(metal_market, df_all, metal_pairs, tickers, ts_order, BASE) for metal_market in metals)
 
 
 def run():
