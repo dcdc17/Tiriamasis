@@ -10,6 +10,8 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from statsmodels.tsa.statespace.varmax import VARMAX
+from sklearn.preprocessing import StandardScaler
+
 
 from constants import tickers, metals, ts_order, metal_pairs, analysis_end_date
 
@@ -29,19 +31,15 @@ df_all = df[df.index < pd.to_datetime(analysis_end_date)]
 df_future = df[df.index >= pd.to_datetime(analysis_end_date)]
 os.makedirs(os.path.join(BASE, "varmax"), exist_ok=True)
 
+#scaler = StandardScaler()
+#df_all = pd.DataFrame(scaler.fit_transform(endog), columns=endog.columns, index=endog.index)
 
 def fit_var_models_parallel(metal_market, df_all, metal_pairs, tickers, ts_order, BASE):
     selected = tickers + [metal_market]
     selected_pairs = metal_pairs[metal_market] + [metal_market]
     metal_market_data_whole = df_all[selected]
     metal_market_data_part = df_all[selected_pairs]
-    p, s, q = ts_order[metal_market]
-    if p == 0:
-        print(f"Warning: p is zero for {metal_market}, setting to default 1")
-        p = 1
-    if q == 0:
-        print(f"Warning: q is zero for {metal_market}, setting to default 1")
-        q = 1
+    p, q = 1, 1
     print(f"Fitting VAR for whole Metal Market {metal_market}")
     model = VARMAX(metal_market_data_whole, order=(p, q), enforce_stationarity=True)
     results = model.fit(disp=False)  # You can tune the lags parameter
@@ -77,17 +75,18 @@ def run():
     rez = {}
     fig, axs = plt.subplots(2, 3, figsize=(18, 8))
     for metal_market, ax in zip(metals, axs.flatten()):
+        selected_pairs = metal_pairs[metal_market] + [metal_market]
         with open(os.path.join(BASE, 'varmax', f'var_{metal_market}.pkl'), 'rb') as f:
             r = pickle.load(f)
             rez[metal_market] = {'var': r['var'], 'var_rez': r['var_rez'],
-                                 'var_part': r['model_part'], 'var_rez_part': r['results_part'],
+                                 'var_part': r['var_part'], 'var_rez_part': r['var_rez_part'],
                                  'varmax': r['varmax'], 'varmax_results': r['varmax_results']}
 
         forecast_steps = len(df_future)
         forecast_v = rez[metal_market]['var_rez'].get_forecast(steps=forecast_steps)
         forecast_v_part = rez[metal_market]['var_rez_part'].get_forecast(steps=forecast_steps)
         forecast = rez[metal_market]['varmax_results'].get_forecast(steps=forecast_steps,
-                                                                    exog=df_future.drop(columns=[metal_market]))
+                                                                    exog=df_all[list(set(tickers) - set(selected_pairs))])
 
         # Get the predicted values
         predicted_values = forecast.predicted_mean[metal_market]

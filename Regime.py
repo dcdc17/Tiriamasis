@@ -32,14 +32,17 @@ for war in WAR:
 
     df_all = df_all.dropna()
 
-    fig, ax = plt.subplots(4, 4, figsize=(16, 16))
-    for a, col in zip(ax.flatten(), tickers + metals):
+    fig, ax = plt.subplots(4, 5, figsize=(12, 12))
+    axs_f = ax.flatten()
+    for a, col in zip(axs_f, tickers + metals):
         a.plot(df_all.index, df_all[f'{col}_returns'], label='Lognormuotos grąžos')
         a.set_title(f'{col}')
         a.set_xlabel('Data')
         a.set_ylabel('Lognormuotos grąžos')
         a.xaxis.set_major_locator(mdates.YearLocator())
         a.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+    axs_f[-1].axis('off')
+    axs_f[-2].axis('off')
     plt.suptitle('Lognormuotos grąžos')
     plt.tight_layout()
     plt.savefig(os.path.join(BASE, 'regime', f'{KARAS}_log_returns.png'))
@@ -50,8 +53,9 @@ for war in WAR:
         model = MarkovRegression(df_all[col], k_regimes=2, switching_variance=True)
         results[col.split('_')[0]] = model.fit()
 
-    fig, axs = plt.subplots(4, 4, figsize=(16, 16))
-    for ax, col in zip(axs.flatten(), [i for i in df_all.columns if i.endswith('_returns')]):
+    fig, axs = plt.subplots(4, 5, figsize=(12, 12))
+    axs_f = axs.flatten()
+    for ax, col in zip(axs_f, [i for i in df_all.columns if i.endswith('_returns')]):
         ax.plot(df_all.index, df_all[col], label='Lognormuotos grąžos', color='black')
         ax.fill_between(df_all.index, 0, results[col.split('_')[0]].smoothed_marginal_probabilities[0], color='blue',
                         alpha=0.3, label='Mažo nepastovumo režimas')
@@ -63,6 +67,8 @@ for war in WAR:
         ax.set_xlabel('Data')
         ax.set_ylabel('Lognormuotos grąžos')
         ax.legend()
+    axs_f[-1].axis('off')
+    axs_f[-2].axis('off')
     plt.suptitle("Grąžos su režimų tikimybėmis")
     plt.tight_layout()
     plt.savefig(os.path.join(BASE, 'regime', f'{KARAS}_regimes.png'))
@@ -70,8 +76,9 @@ for war in WAR:
 
     low_volatility_line = plt.Line2D([0], [0], color='blue', linewidth=2, label='Mažo nepastovumo režimas')
     high_volatility_line = plt.Line2D([0], [0], color='red', linewidth=2, label='Didelio nepastovumo režimas')
-    fig, axs = plt.subplots(4, 4, figsize=(16, 16))
-    for ax, col in zip(axs.flatten(), [i for i in df_all.columns if i.endswith('_returns')]):
+    fig, axs = plt.subplots(4, 5, figsize=(18, 12))
+    axs_f = axs.flatten()
+    for ax, col in zip(axs_f, [i for i in df_all.columns if i.endswith('_returns')]):
         returns = df_all[col]
         probabilities = results[col.split('_')[0]].smoothed_marginal_probabilities
         regimes = np.argmax(probabilities, axis=1)
@@ -85,6 +92,8 @@ for war in WAR:
         ax.set_title(f"{col.split('_')[0]}")
         ax.set_xlabel('Data')
         ax.set_ylabel('Lognormuotos grąžos')
+    axs_f[-1].axis('off')
+    axs_f[-2].axis('off')
 
     fig.legend(
         handles=[low_volatility_line, high_volatility_line],

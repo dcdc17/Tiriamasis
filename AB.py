@@ -10,17 +10,17 @@ os.makedirs(BASE, exist_ok=True)
 os.makedirs(os.path.join(BASE, 'AB'), exist_ok=True)
 
 df = pd.read_csv(f'{BASE}.csv', index_col=0)
-scaler = MinMaxScaler(feature_range=(1, 2))
-df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns, index=df.index)
+#scaler = MinMaxScaler(feature_range=(1, 2))
+#df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns, index=df.index)
 df.index = pd.to_datetime(df.index)
 df = df[df.index < pd.to_datetime(analysis_end_date)]
 
 # Function to calculate Alpha and Beta for a stock
 def calculate_alpha_beta(market, benchmark):
     x = benchmark.pct_change().dropna()
-    x = np.vstack([x, np.ones(len(x))]).T
+    X = np.vstack([x, np.ones(len(x))]).T
     y = market.pct_change().dropna()
-    alpha, beta = np.linalg.lstsq(x, y, rcond=None)[0]
+    beta, alpha = np.linalg.lstsq(X, y, rcond=None)[0]
 
     # Grade for Alpha
     if alpha > 0.05:
@@ -49,8 +49,6 @@ for war in WAR:
     if war is not None:
         df_all = df_all[df_all.index >= pd.to_datetime(war_date) if war else df_all.index < pd.to_datetime(war_date)]
         KARAS = 'po' if war else 'pries'
-    df_stocks = df_all[tickers]
-    df_metals = df_all[metals]
 
     results = {m: {} for m in metals}
 
@@ -72,8 +70,8 @@ for war in WAR:
         betas = [tickers_data[t]['Beta'] for t in tickers]
 
         # Primary y-axis for Alpha
-        ax.plot(tickers, alphas, label='Alpha', marker='o', color='blue')
-        ax.set_ylabel('Alpha', color='blue')
+        ax.plot(tickers, alphas, label='Alfa', marker='o', color='blue')
+        ax.set_ylabel('Alfa', color='blue')
         ax.tick_params(axis='y', labelcolor='blue')
 
         # Secondary y-axis for Beta
@@ -84,13 +82,13 @@ for war in WAR:
 
         # Customizations
         ax.set_title(metal)
-        ax.set_xlabel('Tickers')
+        ax.set_xlabel('Indeksai')
         ax.axhline(0, color='black', linestyle='--', linewidth=0.8)  # Reference line
         ax.grid(True)
         ax.tick_params(axis='x', rotation=60)  # Rotate x-axis tick labels
 
     # Add a shared title for the entire figure
-    plt.suptitle('Alpha ir Beta reikšmės kiekvienam metalo indeksui', fontsize=16)
+    plt.suptitle('Alfa ir Beta reikšmės kiekvienam metalo indeksui', fontsize=16)
     plt.tight_layout()
     plt.savefig(os.path.join(BASE, 'AB', f"{KARAS}_alpha_beta_dual_axes.png"))
     plt.show()
@@ -102,6 +100,8 @@ for war in WAR:
             table_data.append({
                 "Metal": metal,
                 "Ticker": ticker,
+                'Alpha': grades['Alpha'],
+                'Beta': grades['Beta'],
                 "Alpha Grade": grades['Alpha Grade'],
                 "Beta Grade": grades['Beta Grade']
             })

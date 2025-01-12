@@ -108,7 +108,7 @@ def run(sel: str, model: str, test_opt: str):
         if isinstance(combined, pd.Series):
             combined = combined.to_frame()
         X, Y = createXY(combined, n_past)
-        if test_opt:
+        if test_opt == 'test':
             X_train, X_test = (X[:train_split, :, :], X[train_split:, :, :])
             Y_train, Y_test = (Y[:train_split], Y[train_split:])
         else:

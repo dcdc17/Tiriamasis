@@ -45,7 +45,7 @@ for war in WAR:
         ax = axes[lag - 1]
         sns.heatmap(p_value_matrix[lag].astype(float), annot=True, cmap='coolwarm', fmt=".2f",
                     cbar_kws={'label': 'p-reikšmė'}, ax=ax)
-        ax.set_title(f"Grangerio priežastingumo testo p-reikšmės (dėlsa {lag})")
+        ax.set_title(f"Grangerio priežastingumo testo p-reikšmės (delsa {lag})")
 
     plt.tight_layout()
     plt.savefig(os.path.join(BASE, 'granger', f"{KARAS}_granger_causality_lags.png"))
@@ -66,7 +66,7 @@ for war in WAR:
                 p_value = p_value_matrix[lag].at[t, m]
                 if p_value < p_threshold:
                     # If causal, add an edge (from ticker to metal)
-                    G.add_edge(t, m, label=f"Dėlsa {lag}")
+                    G.add_edge(t, m)
 
         # Draw the graph on the current subplot axis
         pos = nx.spring_layout(G, seed=42)  # Layout for the graph
@@ -78,7 +78,7 @@ for war in WAR:
         nx.draw_networkx_edge_labels(G, pos, edge_labels=labels, font_size=10, font_color='red', ax=ax)
 
         # Set title for each lag's network plot
-        ax.set_title(f"Grangerio priežastingumo testo rezultatų tinklas (dėlsa {lag})")
+        ax.set_title(f"Grangerio priežastingumo testo rezultatų tinklas (delsa {lag})")
 
     # Adjust layout for better spacing
     plt.tight_layout()
